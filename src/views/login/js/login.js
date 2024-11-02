@@ -32,11 +32,13 @@ export default {
                 .then((resp) => {
                     let data = resp.data;
                     if (data.success){
+                        let userAuth = data.data
                         const userInfo = {
-                            email: data.email,
-                            role:data.role
+                            id: userAuth.id,
+                            email: userAuth.email,
+                            role:userAuth.role
                         };
-
+                        sessionStorage.setItem("token", userAuth.token)
                         sessionStorage.setItem("userInfo", JSON.stringify(userInfo)); // 保存数据
                         router.push("/index")
                         // this.$message({

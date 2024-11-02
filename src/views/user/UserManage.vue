@@ -55,7 +55,7 @@
   </div>
 
 
-  <el-dialog style="padding: 30px" v-model="userDialogVisible" title="添加用户" width="500">
+  <el-dialog style="padding: 30px" v-model="userDialogVisible" :title="userFormIsEditing?'编辑用户':'添加用户'" width="500">
     <el-form :model="userForm" ref="userFormRef">
       <el-form-item prop="name" required label="姓名" :label-width="userFormLabelWidth">
         <el-input :disabled="userFormIsEditing" v-model="userForm.name" autocomplete="off"/>

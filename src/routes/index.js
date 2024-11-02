@@ -22,7 +22,7 @@ const router = createRouter({
             children: [
                 {
                     path: "/operator-manage",
-                    component: import("@/components/OperatorManage.vue")
+                    component: import("@/views/operator/OperatorManage.vue")
                 },
                 {
                     path: "/scheme-manage",

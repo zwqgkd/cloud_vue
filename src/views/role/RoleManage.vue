@@ -42,12 +42,13 @@
 
   </div>
 
-  <el-dialog style="padding: 30px" v-model="roleDialogVisible" title="添加角色" width="500">
+  <el-dialog style="padding: 30px" v-model="roleDialogVisible" :title="roleFormIsEditing?'角色编辑':'角色添加'"
+             width="500">
     <el-form :model="roleForm" ref="roleFormRef">
       <el-form-item prop="role" required label="角色名称" :label-width="roleFormLabelWidth">
         <el-input :disabled="roleFormIsEditing" v-model="roleForm.role" autocomplete="off"/>
       </el-form-item>
-      <el-form-item prop="permissionIds" required label="功能权限" :label-width="roleFormLabelWidth">
+      <el-form-item prop="permissionIds"  :required="!roleFormIsEditing" label="功能权限" :label-width="roleFormLabelWidth">
         <el-tree-select
             v-model="roleForm.permissionIds"
             :data="permissionData"
@@ -91,10 +92,10 @@ export default {
         id: "", // 仅在更新用户信息时使用
         role: "",
         createUser: "",
-        permissionIds:[] // 用户实际选择的权限列表
+        permissionIds: [] // 用户实际选择的权限列表
       },
 
-      permissionData:[], // 所有权限列表
+      permissionData: [], // 所有权限列表
 
 
       roleFormLabelWidth: '120px',
@@ -126,25 +127,25 @@ export default {
         this.total = data.size;
       })
     },
-    initAndFormatPermission(){
+    initAndFormatPermission() {
       axiosInstance.get("/role/permission")
-          .then((resp)=>{
+          .then((resp) => {
             let data = resp.data;
             let permissionArray = data.data;
 
             let key = []; // 权限类别名
             let formData = {};
-            permissionArray.forEach((permission)=>{
-              if (!formData[permission.groupName]){
+            permissionArray.forEach((permission) => {
+              if (!formData[permission.groupName]) {
                 formData[permission.groupName] = [];
                 key.push(permission.groupName);
               }
-              let child = { "value": permission.id, "label": permission.name};
+              let child = {"value": permission.id, "label": permission.name};
               formData[permission.groupName].push(child);
 
             });
 
-            key.forEach((k)=>{
+            key.forEach((k) => {
               this.permissionData.push({"label": k, "children": formData[k]})
             });
 
@@ -152,17 +153,14 @@ export default {
     },
     handleEdit(index, row) {
 
-      this.userDialogVisible = true;
-      this.userFormIsEditing = true;
+      this.roleDialogVisible = true;
+      this.roleFormIsEditing = true;
 
 
-      this.userForm.id = row.id;
-      this.userForm.name = row.name;
-      this.userForm.email = row.email;
-      this.userForm.department = row.department;
-      this.userForm.company = row.company;
-      this.userForm.phone = row.phone;
-      this.userForm.roleId = row.roleId;
+      this.roleForm.id = row.id;
+      this.roleForm.role = row.role;
+
+      this.roleForm.permissionIds = row.permissionIds;
 
 
       // this.userFormIsEditing = false;
@@ -215,35 +213,37 @@ export default {
       this.roleDialogVisible = true;
       this.roleFormIsEditing = false;
       // 防止第一次访问userFormRef时还未初始化
-      if (this.$refs.roleFormRef !== undefined) {
-        this.$refs.roleFormRef.resetFields();
-      }
+      this.roleForm.id = "";
+      this.roleForm.role = "";
+      this.roleForm.createUser = "";
+      this.roleForm.permissionIds = [];
+      // if (this.$refs.roleFormRef !== undefined) {
+      //   this.$refs.roleFormRef.resetFields();
+      // }
     },
 
     roleEditDialogConfirm() {
 
-      this.$refs.roleFormRef.validate((valid) => {
-        if (valid) {
-          this.roleDialogVisible = false;
-
-          // todo
-          axiosInstance
-              .post("/role/updatePermission", this.roleForm)
-              .then((resp) => {
-                let data = resp.data
-                if (data.success) {
-                  ElMessage({
-                    message: data.msg,
-                    type: 'success',
-                  })
-                  this.initTableData();
-                }
+      this.roleDialogVisible = false;
+      axiosInstance
+          .post("/role/updatePermission", this.roleForm)
+          .then((resp) => {
+            let data = resp.data
+            if (data.success) {
+              ElMessage({
+                message: data.msg,
+                type: 'success',
               })
+              this.initTableData();
+            }else{
+              ElMessage({
+                message: data.msg,
+                type: 'error',
+              })
+            }
+          })
 
-        } else {
-          return false;
-        }
-      })
+
     },
 
     roleAddDialogConfirm() {
@@ -268,6 +268,9 @@ export default {
           return false;
         }
       })
+
+
+
 
     },
 
